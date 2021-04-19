@@ -5,9 +5,9 @@ import Node from './components/Node.vue'
 Vue.use(VueRouter);
 
 const routes = [
-  { path: '/', component: Node },
+  { path: '/:findex', component: Node, props:true},
 ]
 
-const router = new VueRouter({ routes })
+const router = new VueRouter({ mode: 'history', routes })
 
 export { router, routes }
