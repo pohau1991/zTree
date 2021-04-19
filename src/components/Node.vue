@@ -18,7 +18,7 @@
                   </div>
                 </template>
               </div>
-              <button type="" class="btn btn-zingtree col-2">{{ b.button_text }}</button>
+              <button type="" @click="changeIndex(b.target_node_id)" class="btn btn-zingtree col-2">{{ b.button_text }}</button>
             </form>
           </li>
         </ul>
@@ -40,6 +40,8 @@ export default {
       sharedState: store.state,
       thing: '',
       progression: [],
+      logicArray: [],
+      formIndex: 1,
     }
   },
   computed: {
@@ -68,6 +70,7 @@ export default {
     
   },
   created(){
+    this.progression = localStorage.getItem('progress') ? JSON.parse(localStorage.getItem('progress')) : [];
     this.getSurveyInfo();
   },
   methods: {
@@ -110,23 +113,25 @@ export default {
       this.moveForward();
       localStorage.setItem('progress', JSON.stringify(this.progression));
     },
+    changeIndex(tempIndex){
+      this.formIndex = tempIndex;
+    },
     moveForward(){
-      this.sharedState.activeNodeId++;
+      this.sharedState.activeNodeId = this.formIndex;
+      
       this.$router.push({ path: '/'+this.sharedState.activeNodeId })
       if(!this.computedNode.display)
       {
+        if(this.computedNode.type.toLowerCase() == 'logic'){
+          this.logicArray[this.sharedState.activeNodeId] = this.computedNode.conditions;
+        }
+        console.log(this.logicArray);
         this.progressForm();
       }
     },
-    /**fulfillLogic(){
-      for(let i = 0; i < this.progression.length; i++){
-        if(this.progression[i].type.toLowerCase() == "logic"){
-          for(let j = 0; j < this.progression[i].conditions[j]; j++){
-            if()
-          }
-        }
-      }
-    },**/
+    fulfillLogic(){
+      
+    },
     processContent(content){
       let temp = content.split(/(?=[#])|(?<=[#])/g);
       
