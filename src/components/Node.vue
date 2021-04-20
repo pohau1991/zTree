@@ -55,8 +55,17 @@ export default {
       return this.computedNode.formfields;
     },
   },
-  mounted(){
+  beforeMount(){
+    this.getSurveyInfo();
+    
+    //console.log(this.logicArray);
+    //console.log(Object.values(this.sharedState.survey.nodes).filter(node => node.type.toLowerCase() == 'default'));
+  },
+  created(){
+    
     this.sharedState.activeNodeId = this.$route.params.findex ? parseInt(this.$route.params.findex) : this.sharedState.activeNodeId;
+    this.progression = localStorage.getItem('progress') ? JSON.parse(localStorage.getItem('progress')) : [];
+    
   },
   watch:{
     '$route.params.findex':{
@@ -69,15 +78,14 @@ export default {
     //Should use Mutations to commit this in a shared
     
   },
-  created(){
-    this.progression = localStorage.getItem('progress') ? JSON.parse(localStorage.getItem('progress')) : [];
-    this.getSurveyInfo();
-  },
+  
   methods: {
     async getSurveyInfo(){
       await axios.get('https://zt-eng.s3.us-east-1.amazonaws.com/fe-challenge/survey.json')
                     .then(response => {
+                      console.log('axios executes here');
                       this.sharedState.survey = response.data;
+                      this.populateLogicArray();
                     })
                     .catch(error => {
                       console.log(error);
@@ -109,7 +117,7 @@ export default {
           }
         }
       }
-      
+      this.fulfillLogic(this.progression[tempNode.project_node_id]);
       this.moveForward();
       localStorage.setItem('progress', JSON.stringify(this.progression));
     },
@@ -122,15 +130,24 @@ export default {
       this.$router.push({ path: '/'+this.sharedState.activeNodeId })
       if(!this.computedNode.display)
       {
-        if(this.computedNode.type.toLowerCase() == 'logic'){
-          this.logicArray[this.sharedState.activeNodeId] = this.computedNode.conditions;
-        }
-        console.log(this.logicArray);
+
         this.progressForm();
       }
     },
-    fulfillLogic(){
+    fulfillLogic(obj){
       
+      
+    },
+    populateLogicArray(){
+    let tempArray = {};
+      Object.values(this.sharedState.survey.nodes).forEach(function(node, index){
+        if(node.type.toLowerCase() == 'logic'){
+          node.formfields = node.conditions.filter(n => n.operator == 'default');
+          tempArray[index] = node;
+          
+        }
+      })
+      this.logicArray = tempArray;
     },
     processContent(content){
       let temp = content.split(/(?=[#])|(?<=[#])/g);
